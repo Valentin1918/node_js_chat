@@ -2,8 +2,9 @@ var express = require('express');
 var path = require('path');
 var http = require('http');
 var config = require('config');
-
 var errorhandler = require('errorhandler');
+var log = require('libs/log')(module); //require and run logger by passing module as an argument
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 
@@ -13,8 +14,9 @@ app.set('port', config.get('port'));
 var server = http.createServer(app);
 
 
-server.listen(config.get('port'), function(){
-  console.log('Express server listening on port: ', config.get('port'));
+server.listen(app.get('port'), function(){
+  log.info('Express server listening on port: ', config.get('port')); //old => log.log('info', 'check log.log');
+  log.debug('we check this debug'); //old => log.log('debug', 'check log.debug');
 });
 // server.on('error', onError);
 // server.on('listening', onListening);
@@ -30,6 +32,7 @@ app.use('/users', users);
 
 // Middleware --> with 3 arguments
 app.use(function(req, res, next) {
+  // console.log(process.env);
   if(req.url === '/test') {
     res.end('Test')
   } else {
