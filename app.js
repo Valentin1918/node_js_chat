@@ -1,6 +1,12 @@
 var express = require('express');
 var path = require('path');
 var http = require('http');
+
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+
 var config = require('config');
 var errorhandler = require('errorhandler');
 var log = require('libs/log')(module); //require and run logger by passing module as an argument
@@ -14,7 +20,7 @@ app.set('port', config.get('port'));
 var server = http.createServer(app);
 
 
-server.listen(app.get('port'), function(){
+server.listen(config.get('port'), function(){
   log.info('Express server listening on port: ', config.get('port')); //old => log.log('info', 'check log.log');
   log.debug('we check this debug'); //old => log.log('debug', 'check log.debug');
 });
@@ -22,12 +28,33 @@ server.listen(app.get('port'), function(){
 // server.on('listening', onListening);
 
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views')); //our templates (html pages) - шаблонизатор
+app.set('view engine', 'ejs'); // движок для шаблонов - ejs
 
-app.use(express.static(path.join(__dirname, 'public'))); //we set that current url /public is our static folder
 
-app.use('/', index);
+//External middlewares:
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico'))); // uncomment after placing your favicon in /public
+app.use(logger('dev')); // log each http request in console . In connect - logger we can see other formats (now we have dev); wo flag immediate log is written ONLY by http request finishing.
+app.use(bodyParser.json()); // bodyParser разбирает тело запроса (form, json...) из req.body...
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser()); // cookieParser разбирает куки из req.headers и делает req.cookies
+//app.use(app.router); // for using routers app.get('/', ...), app.post('/', ...), app.put('/', ...) ...  --> is already deprecated on express 4.0
+
+app.use(express.static(path.join(__dirname, 'public'))); //we set that current url /public is our static folder -- отдает статику
+
+
+app.get('/', function(req, res, next) {
+  res.end('Test')
+});
+
+app.get('/hello', function(req, res, next) {
+  res.render('hello', {
+    body: '<b>Hello</b>'
+  });
+});
+
+
+// app.use('/', index);
 app.use('/users', users);
 
 // Middleware --> with 3 arguments

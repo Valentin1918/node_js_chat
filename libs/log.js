@@ -9,7 +9,7 @@ function getLogger(module) {
       new winston.transports.Console({
         colorize: true, //make 'info' green color
         level: ENV === 'development' ? 'debug' : 'error',
-        label: path
+        label: path //indicate in [] last two steps of current script
       })
     ]
   });
