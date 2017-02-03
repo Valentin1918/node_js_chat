@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Hello title</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-</head>
-<body>
+<% layout('./layout/page') -%>
+<% block('title', 'Hello To YOU!'); -%>
+
 <p><%= body %></p>
 <p><%- body %></p>
-</body>
-</html>

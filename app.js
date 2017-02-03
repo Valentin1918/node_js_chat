@@ -27,7 +27,7 @@ server.listen(config.get('port'), function(){
 // server.on('error', onError);
 // server.on('listening', onListening);
 
-
+app.engine('ejs', require('ejs-locals')); //layout partial block -- файлы с расширением ejs обрабатывать при помощи ejs-locals
 app.set('views', path.join(__dirname, 'views')); //our templates (html pages) - шаблонизатор
 app.set('view engine', 'ejs'); // движок для шаблонов - ejs
 
