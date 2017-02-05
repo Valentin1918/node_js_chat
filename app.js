@@ -49,7 +49,7 @@ app.get('/', function(req, res, next) {
 
 app.get('/hello', function(req, res, next) {
   res.render('hello', {
-    body: '<b>Hello</b>'
+    // body: '<b>Hello</b>' //--> don't need it here because of template
   });
 });
 
