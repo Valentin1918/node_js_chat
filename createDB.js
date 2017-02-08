@@ -1,3 +1,4 @@
+/** Made on Node-Mongodb-Native*/
 var MongoClient = require('mongodb').MongoClient,
     assert = require('assert');
 
