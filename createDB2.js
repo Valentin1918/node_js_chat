@@ -11,7 +11,7 @@ schema.methods.meow = function() {
   console.log(this.get('name'), 'say meow...');
 };
 // declaring our class (className, allowed fields with types); best way is to to indicate allowed fields in schema!
-var Cat = mongoose.model('Cat', schema);
+var Cat = mongoose.model('Cat', schema); //we indicate schema here instead of an object with accepted fields
 
 var kitty = new Cat({
   name: 'Zildjian',
