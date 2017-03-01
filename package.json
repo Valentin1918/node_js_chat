@@ -6,6 +6,7 @@
     "start": "node ./app.js"
   },
   "dependencies": {
+    "async": "^2.1.5",
     "bluebird": "^3.4.7",
     "body-parser": "~1.15.2",
     "bootstrap": "^3.3.7",
