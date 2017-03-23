@@ -1,7 +1,6 @@
 var mongoose = require('libs/mongoose');
-mongoose.set('debug', true);
+mongoose.set('debug', true); //-> debug mode switcher
 var async = require('async');
-var User = require('models/user').User;
 
 // 1. drop database
 // 2. create & save 3 users
@@ -16,28 +15,34 @@ function dropDB(callback) {
   db.dropDatabase(callback);
 }
 
+function requireModels(callback) { //-> подключение моделей в отдельной функции
+  require('models/user'); // model --> becomes available in mongoose.models (подключение моделей)
+
+  async.each(Object.keys(mongoose.models), function(modelName, callback) {
+    mongoose.models[modelName].ensureIndexes(callback);
+  }, callback);
+}
+
 function createUsers(callback) {
   var users = [
-    {username: 'Vasia2', password: 'gdfgfdgd'},
-    {username: 'Petia2', password: 'fgdfgdjh'},
-    {username: 'Admin2', password: 'jkhjkghs'}
+    {username: 'Vasia', password: 'gdfgfdgd'},
+    {username: 'Vasia', password: 'fgdfgdjh'},
+    {username: 'Admin3', password: 'jkhjkghs'}
   ];
 
   async.each(users, function(userData, callback) {
-    var user = new User(userData);
-    user.save(callback); //async.each take out affected from save method
+    var user = new mongoose.models.User(userData);
+    user.save(callback); //async.each take out user and affected arguments from save method
   }, callback);
 
 }
 
-function close(callback) {
-  mongoose.disconnect(callback);
-}
-
 // -> this method execute methods in array strictly one by one
 async.series([
-  open, dropDB, createUsers, close
+  open, dropDB, requireModels, createUsers
 ], function(err, results) {
   console.log(arguments);
+  mongoose.disconnect();
+  process.exit(err ? 255 : 0); //if error exit code is 255, otherwise exit code is normal = 0
 });
 

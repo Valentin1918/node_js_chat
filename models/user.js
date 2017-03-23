@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 var schema = new Schema({
   username: {
     type: String,
-    unique: true,
+    unique: true, // username, background:true --> mongo сама создает в фоне еще свой идентификатор если unique: true
     required: true
   },
   hashedPassword: {
