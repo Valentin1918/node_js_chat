@@ -10,9 +10,9 @@ var bodyParser = require('body-parser');
 var config = require('config');
 var errorhandler = require('errorhandler');
 var log = require('libs/log')(module); //require and run logger by passing module as an argument
+var HttpError = require('error').HttpError;
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+var index = require('routes');
 
 var app = express();
 app.set('port', config.get('port'));
@@ -39,23 +39,13 @@ app.use(bodyParser.json()); // bodyParser разбирает тело запро
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser()); // cookieParser разбирает куки из req.headers и делает req.cookies
 //app.use(app.router); // for using routers app.get('/', ...), app.post('/', ...), app.put('/', ...) ...  --> is already deprecated on express 4.0
-
 app.use(express.static(path.join(__dirname, 'public'))); //we set that current url /public is our static folder -- отдает статику
 
-
-app.get('/', function(req, res, next) {
-  res.end('Test')
-});
-
-app.get('/hello', function(req, res, next) {
-  res.render('hello', {
-    // body: '<b>Hello</b>' //--> don't need it here because of template
-  });
-});
+app.use(require('middleware/sendHttpError'));
+index(app);
 
 
 // app.use('/', index);
-app.use('/users', users);
 
 // Middleware --> with 3 arguments
 app.use(function(req, res, next) {
@@ -84,11 +74,24 @@ app.use(function(req, res) {
 
 // Handle errors -- has 4 arguments. If in some middleware was thrown an error or passed an Error in nex -- we come in handle error
 app.use(function(err, req, res, next) {
-  if(app.get('env') === 'development') {
-    var errorHandler = errorhandler();
-    errorHandler(err, req, res, next)
+  // console.log('res-----', res.sendHttpError);
+  if(typeof err === 'number') { //-> next(404) for example
+    console.log('typeof err === number');
+    err = new HttpError(err);
+  }
+
+  if(err instanceof HttpError) {
+    console.log('we send sendHttpError');
+    res.sendHttpError(err); //-> our custom method
   } else {
-    res.status(500);
+    if(app.get('env') === 'development') {
+      var errorHandler = errorhandler();
+      errorHandler(err, req, res, next); //-> run error handler (before it was built in express)
+    } else {
+      log.error(err); //-> if production we need to write an error in log
+      err = new HttpError(500);
+      res.sendHttpError(err);
+    }
   }
 });
 
