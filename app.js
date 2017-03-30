@@ -10,6 +10,8 @@ var bodyParser = require('body-parser');
 var config = require('config');
 var errorhandler = require('errorhandler');
 var log = require('libs/log')(module); //require and run logger by passing module as an argument
+var mongoose = require('libs/mongoose');
+var session = require('express-session');
 var HttpError = require('error').HttpError;
 
 var index = require('routes');
@@ -33,11 +35,31 @@ app.set('view engine', 'ejs'); // движок для шаблонов - ejs
 
 
 //External middlewares:
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico'))); // uncomment after placing your favicon in /public
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico'))); // uncomment after placing your favicon in /public
 app.use(logger('dev')); // log each http request in console . In connect - logger we can see other formats (now we have dev); wo flag immediate log is written ONLY by http request finishing.
 app.use(bodyParser.json()); // bodyParser разбирает тело запроса (form, json...) из req.body...
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser()); // cookieParser разбирает куки из req.headers и делает req.cookies
+
+var MongoStore = require('connect-mongo')(session); //need to store our session in mongoDB. Creates collection bd.sessions
+// в начале куки s%3A -- говорит о том что кука подписанна (имеет secret)
+// в консоли document.cookie -- выдасть пустую строку так как у нас в cookie.httpOnly = true
+
+app.use(session({ //need to use after cookie parser use
+  secret: config.get('session:secret'), //some secret for our cookie -- на основе его генериться криптованная подпись
+  key: config.get('session:key'), //some key for our cookie
+  cookie: config.get('session:cookie'), //"httpOnly": true -- means that cookie doesn't enter in JS (protection of XSS attacks), "maxAge": null -- cookie live during the session
+  store: new MongoStore({mongooseConnection: mongoose.connection}), //class which add or delete sessions from DB. MongoStore takes settings from mongoose
+  resave: false,
+  saveUninitialized: true
+  // согласно доки connect-mongo если сессия никак не менялась 2 недели она будет удалена с БД (можно конфигурировать меняя maxAge)
+})); //initially set cookie connect:sid
+
+app.use(function(req, res, next) {
+  req.session.numberOfVisits = req.session.numberOfVisits + 1 || 1; //we can put in req.session any needed data -- объект данных о сессии
+  res.send('Visits: ' + req.session.numberOfVisits);
+});
+
 //app.use(app.router); // for using routers app.get('/', ...), app.post('/', ...), app.put('/', ...) ...  --> is already deprecated on express 4.0
 app.use(express.static(path.join(__dirname, 'public'))); //we set that current url /public is our static folder -- отдает статику
 

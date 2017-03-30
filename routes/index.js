@@ -7,6 +7,10 @@ module.exports = function(app) {
     res.end('Test');
   });
 
+  // app.get('/favicon.ico', function(req, res) {
+  //   res.send(204);
+  // });
+
   app.get('/hello', function(req, res, next) {
     res.render('hello', {
       // body: '<b>Hello</b>' //--> don't need it here because of template
