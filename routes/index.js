@@ -3,9 +3,12 @@ var HttpError = require('error').HttpError;
 var ObjectID = require('mongodb').ObjectID;
 
 module.exports = function(app) {
-  app.get('/', function(req, res, next) {
-    res.end('Test');
-  });
+  app.get('/', require('./frontpage').get);
+
+  app.get('/login', require('./login').get);
+  app.post('/login', require('./login').post);
+
+  app.get('/chat', require('./chat').get);
 
   // app.get('/favicon.ico', function(req, res) {
   //   res.send(204);
