@@ -21,7 +21,7 @@ exports.post = function(req, res, next) {
 
   //code below is based on async library (method waterfall)
   async.waterfall([
-    function() {
+    function(callback) {
       User.findOne({username: username}, callback);
     },
     function(user, callback) {
@@ -32,20 +32,23 @@ exports.post = function(req, res, next) {
           next(new HttpError(403, 'Incorrect password!'))
         }
       } else {
+        // if there are no such user -- need to create it
         var user = new User({username: username, password: password});
         user.save(function(err) {
           if(err) {return next(err)}
           callback(null, user);
         })
       }
-    },
+    }
+  ],
     function(err, user) {
       if(err) {return next(err)}
       req.session.user = user._id;
-      res.send({}); // or --> res.end();
+      res.end();
+      // res.send({}); // or --> res.end();
     }
-  ]);
-//TODO: lesson 9 , 8:10
+  );
+//TODO: lesson 9 , 8:30
 //code below is the same but based on callbacks
 /*  User.findOne({username: username}, function(err, user) {
     if(err) {return next(err)}

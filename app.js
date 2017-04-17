@@ -11,6 +11,7 @@ var config = require('config');
 var errorhandler = require('errorhandler');
 var log = require('libs/log')(module); //require and run logger by passing module as an argument
 var mongoose = require('libs/mongoose');
+mongoose.Promise = global.Promise; //mongoose promise library is deprecated (we use global.Promise instead)
 var session = require('express-session');
 var HttpError = require('error').HttpError;
 
