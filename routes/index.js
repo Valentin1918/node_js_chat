@@ -1,15 +1,18 @@
 var User = require('models/user').User;
 var HttpError = require('error').HttpError;
 var ObjectID = require('mongodb').ObjectID;
+var checkAuth = require('middleware/checkAuth');
 
 module.exports = function(app) {
   app.get('/', require('./frontpage').get);
 
   app.get('/login', require('./login').get);
   app.post('/login', require('./login').post);
+  app.post('/logout', require('./logout').post);
 
-  app.get('/chat', require('./chat').get);
+  app.get('/chat', checkAuth, require('./chat').get); // проверяем в миддлваре checkAuth авторизирован ли пользователь и только если да -- пускаем на страницу чата, иначе выводим ему сообщение
 
+  /** For auth using Gmail, Facebook etc. need to use library Passportjs*/
   // app.get('/favicon.ico', function(req, res) {
   //   res.send(204);
   // });

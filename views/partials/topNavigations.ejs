@@ -1,8 +1,20 @@
 <nav class="navbar navbar-default" role="navigation">
     <ul class="nav navbsr-nav">
         <li><a href="/">Main</a></li>
+        <% if(user) { %>
+        <li><a href="/chat">Chat</a></li>
+        <% } %>
     </ul>
     <ul class="nav navbsr-nav navbar-right">
+        <% if(user) { %>
+        <li><a href="" onclick="
+            var form = $('<form method=POST action=/logout>');
+            $(document.body).append(form);
+            form.submit();
+            return false;
+        ">Exit</a></li>
+        <% } else { %>
         <li><a href="/login">Login</a></li>
+        <% } %>
     </ul>
 </nav>

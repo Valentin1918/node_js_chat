@@ -1,3 +1,6 @@
+var async = require('async');
+var HttpError = require('error').HttpError;
+var util = require('util');
 var crypto = require('crypto');
 var mongoose = require('libs/mongoose');
 var Schema = mongoose.Schema;
@@ -43,4 +46,61 @@ schema.methods.checkPassword = function(password) {
   return this.encryptPassword(password) === this.hashedPassword;
 };
 
+schema.statics.authorize = function(username, password, callback) {
+  var User = this;
+  //code below is based on async library (method waterfall)
+  async.waterfall([
+      function(callback) {
+        User.findOne({username: username}, callback);
+      },
+      function(user, callback) {
+        if(user) {
+          if(user.checkPassword(password)) {
+            callback(null, user);
+          } else {
+            callback(new AuthError('Incorrect password!'))
+          }
+        } else {
+          // if there are no such user -- need to create it
+          var user = new User({username: username, password: password});
+          user.save(function(err) {
+            if(err) {return callback(err)}
+            callback(null, user);
+          })
+        }
+      }
+    ],
+    callback
+  );
+
+  //code below is the same but based on callbacks
+  /*  User.findOne({username: username}, function(err, user) {
+   if(err) {return next(err)}
+   if(user) {
+   if(user.checkPassword(password)) {
+   //...200 OK
+   } else {
+   //...403 Forbidden
+   }
+   } else {
+   var user = new User({username: username, password: password});
+   user.save(function(err) {
+   if(err) {return next(err)}
+   //...200 OK
+   })
+   }
+   });*/
+};
+
 exports.User = mongoose.model('User', schema);
+
+function AuthError(message) {
+  Error.apply(this, arguments);
+  Error.captureStackTrace(this, HttpError);
+
+  this.message = message;
+}
+
+util.inherits(AuthError, Error);
+AuthError.prototype.name = 'AuthError';
+exports.AuthError = AuthError;

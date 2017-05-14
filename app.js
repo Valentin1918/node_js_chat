@@ -65,6 +65,7 @@ app.use(session({ //need to use after cookie parser use
 app.use(express.static(path.join(__dirname, 'public'))); //we set that current url /public is our static folder -- отдает статику
 
 app.use(require('middleware/sendHttpError'));
+app.use(require('middleware/loadUser')); //need to be inserted after session and before routes
 index(app);
 
 
@@ -119,3 +120,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+//TODO: lesson 10 , 0:00

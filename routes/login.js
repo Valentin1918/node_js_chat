@@ -1,6 +1,7 @@
 var User = require('models/user').User;
 var HttpError = require('error').HttpError;
-var async = require('async');
+var AuthError = require('models/user').AuthError;
+
 
 exports.get = function(req, res) {
   res.render('login');
@@ -19,53 +20,17 @@ exports.post = function(req, res, next) {
   //  да - сохранить _id посетителя в сессии: session = user._id и ответить 200
   //  нет - вывести ошибку (403 или другую)
 
-  //code below is based on async library (method waterfall)
-  async.waterfall([
-    function(callback) {
-      User.findOne({username: username}, callback);
-    },
-    function(user, callback) {
-      if(user) {
-        if(user.checkPassword(password)) {
-          callback(null, user);
-        } else {
-          next(new HttpError(403, 'Incorrect password!'))
-        }
+  User.authorize(username, password, function(err, user) {
+    if(err) {
+      if(err instanceof AuthError) {
+        return next(new HttpError(403, err.message));
       } else {
-        // if there are no such user -- need to create it
-        var user = new User({username: username, password: password});
-        user.save(function(err) {
-          if(err) {return next(err)}
-          callback(null, user);
-        })
+        return next(err);
       }
     }
-  ],
-    function(err, user) {
-      if(err) {return next(err)}
-      req.session.user = user._id;
-      res.end();
-      // res.send({}); // or --> res.end();
-    }
-  );
-//TODO: lesson 9 , 8:30
-//code below is the same but based on callbacks
-/*  User.findOne({username: username}, function(err, user) {
-    if(err) {return next(err)}
-    if(user) {
-      if(user.checkPassword(password)) {
-        //...200 OK
-      } else {
-        //...403 Forbidden
-      }
-    } else {
-      var user = new User({username: username, password: password});
-      user.save(function(err) {
-        if(err) {return next(err)}
-        //...200 OK
-      })
-    }
-  });*/
 
+    req.session.user = user._id;
+    res.send({});  // or --> res.end();
+  });
 
 };
