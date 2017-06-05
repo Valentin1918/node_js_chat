@@ -5,7 +5,7 @@
 
 <p>Welcome dear, <%=user.get('username')%></p>
 
-<script src="/socket.io/socket.io.js"></script>
+<script src="./vendor/bower_components/socket.io-client/dist/socket.io.js"></script>
 
 <div id="room">
     <ul></ul>
@@ -15,27 +15,54 @@
 </div>
 
 <script>
-    var server = io.connect(); // if no server indicated -- means current server
-    //io.connect start on server io.on('connection'...
+  var input = $('#room input');
+  var form = $('#room form');
+  var ul = $('#room ul');
 
-    var form = $('#room form');
-    var ul = $('#room ul');
-console.log(form);
+  var server = io.connect('', {  //io.connect start on server io.on('connection'...
+    reconnect: false
+  }); // if no server indicated -- means current server
 
 
-    form.on('submit', function (e) {
-      var input = $(this).find(':input');
-      var text = input.val();
-      input.val('');
-
-      server.emit('message', text, function(data) {
-        $('<li>', {text: text}).appendTo(ul);
-        console.log('some data from server, if need', data);
-      });
-      e.preventDefault();
+  server
+    .on('message', function(message) {
+      console.info('client listen from outside because our server broadcast event "message" everywhere, but not here', "color: brown; font-style: italic; padding: 2px;");
+      printMessage(message);
+    })
+    .on('connect', function() { // listen io.connect which is above
+      console.info('%cconnection is ready', "color: blue; font-style: italic; padding: 2px;"); //printStatus is not defined
+      form.on('submit', function(e) { sendMessage(e) }); // on sending message functionality
+      input.prop('disabled', false);
+    })
+    .on('disconnect', function() {
+      console.info('%cconnection is lost', "color: red; font-style: italic; padding: 2px;");
+      form.off('submit', function(e) { sendMessage(e) }); // off sending message functionality
+      input.prop('disabled', true);
+      setTimeout(reconnect, 500);
     });
 
-    server.on('message', function(text) {
-      $('<li>', {text: text}).appendTo(ul);
-    })
+  function printMessage(text) {
+    console.count();
+    $('<li>', {text: text}).appendTo(ul);
+  }
+
+  function sendMessage(e) {
+    var text = input.val();
+
+    server.emit('message', text, function(data) {
+      printMessage(text);
+      console.info('%csome data from server which is not used yet: ' + data, "color: green; font-style: italic; padding: 2px;");
+    });
+    input.val('');
+    e.preventDefault && e.preventDefault();
+    return false;
+  }
+
+  function reconnect() { // eternally once a half second client will try to establish connection with server
+    server.once('error', function() {
+      setTimeout(reconnect, 500);
+    });
+    server.socket.connect();
+  }
+
 </script>

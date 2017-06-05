@@ -31,13 +31,7 @@ server.listen(config.get('port'), function(){
 // server.on('listening', onListening);
 
 /*-------------------------------------------------WS-----------------------------------------------------------------*/
-var io = require('socket.io')(server); //plugged in a library for ws socket.io
-io.on('connection', function(client){ //client --> объект связанный с клиентом -- отдаем и получаем сообщения клиенту
-  client.on('message', function(text, cb){
-    client.broadcast.emit('message', text); // broadcast send message to all connections except this one who emit it
-    cb('123');
-  });
-});
+require('./socket')(server);
 /*-------------------------------------------------WS-end-------------------------------------------------------------*/
 
 app.engine('ejs', require('ejs-locals')); //layout partial block -- файлы с расширением ejs обрабатывать при помощи ejs-locals
@@ -131,4 +125,4 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-//TODO: lesson 10 , 0:00
+//TODO: lesson 13 , 0:00
