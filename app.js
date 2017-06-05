@@ -30,6 +30,16 @@ server.listen(config.get('port'), function(){
 // server.on('error', onError);
 // server.on('listening', onListening);
 
+/*-------------------------------------------------WS-----------------------------------------------------------------*/
+var io = require('socket.io')(server); //plugged in a library for ws socket.io
+io.on('connection', function(client){ //client --> объект связанный с клиентом -- отдаем и получаем сообщения клиенту
+  client.on('message', function(text, cb){
+    client.broadcast.emit('message', text); // broadcast send message to all connections except this one who emit it
+    cb('123');
+  });
+});
+/*-------------------------------------------------WS-end-------------------------------------------------------------*/
+
 app.engine('ejs', require('ejs-locals')); //layout partial block -- файлы с расширением ejs обрабатывать при помощи ejs-locals
 app.set('views', path.join(__dirname, 'views')); //our templates (html pages) - шаблонизатор
 app.set('view engine', 'ejs'); // движок для шаблонов - ejs

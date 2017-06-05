@@ -8,7 +8,7 @@ exports.get = function(req, res) {
 };
 
 exports.post = function(req, res, next) {
-  //req.body --> свойство которое содержит в себе пердаваемые с клиента данные (это делает мидлвара bodyParser)
+  //req.body --> свойство которое содержит в себе передаваемые с клиента данные (это делает мидлвара bodyParser)
   var username = req.body.username;
   var password = req.body.password;
 

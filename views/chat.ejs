@@ -4,3 +4,38 @@
 <p class="lead">Here will be our chat</p>
 
 <p>Welcome dear, <%=user.get('username')%></p>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<div id="room">
+    <ul></ul>
+    <form>
+        <input class="form-control" autocomplete="off" autofocus placeholder="Message...">
+    </form>
+</div>
+
+<script>
+    var server = io.connect(); // if no server indicated -- means current server
+    //io.connect start on server io.on('connection'...
+
+    var form = $('#room form');
+    var ul = $('#room ul');
+console.log(form);
+
+
+    form.on('submit', function (e) {
+      var input = $(this).find(':input');
+      var text = input.val();
+      input.val('');
+
+      server.emit('message', text, function(data) {
+        $('<li>', {text: text}).appendTo(ul);
+        console.log('some data from server, if need', data);
+      });
+      e.preventDefault();
+    });
+
+    server.on('message', function(text) {
+      $('<li>', {text: text}).appendTo(ul);
+    })
+</script>
