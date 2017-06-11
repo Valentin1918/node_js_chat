@@ -25,9 +25,16 @@
 
 
   server
-    .on('message', function(message) {
+    .on('message', function(username, message) {
       console.info('client listen from outside because our server broadcast event "message" everywhere, but not here', "color: brown; font-style: italic; padding: 2px;");
-      printMessage(message);
+      printMessage(username + '> ' + message);
+    })
+    .on('leave', function(username) {
+      console.log('we leave the chat');
+      printStatus(username + ' leave chat');
+    })
+    .on('join', function(username) {
+      printStatus(username + ' join chat');
     })
     .on('connect', function() { // listen io.connect which is above
       console.info('%cconnection is ready', "color: blue; font-style: italic; padding: 2px;"); //printStatus is not defined
@@ -44,6 +51,10 @@
   function printMessage(text) {
     console.count();
     $('<li>', {text: text}).appendTo(ul);
+  }
+
+  function printStatus(status) {
+    $('<li>').append($('<i>').text(status)).appendTo(ul);
   }
 
   function sendMessage(e) {

@@ -1,8 +1,8 @@
 var async = require('async');
 var cookie = require('cookie');
 var config = require('config');
-var connect = require('connect');
-var sessionStore = require('lib/sessionStore');
+var cookieParser = require('cookie-parser');
+var sessionStore = require('libs/sessionStore');
 var HttpError = require('error').HttpError;
 var User = require('models/user').User;
 // npm debug is built-in socket.io so don't need even to install debug or plug in it.
@@ -36,7 +36,7 @@ function loadUser(session, callback) {
 module.exports = function(server) {
   var io = require('socket.io')(server); //plugged in a library for ws socket.io
 
-  io.origins(['localhost:*']); // allow connect to out webservice only sites from the same domain
+  io.origins(['192.168.1.104:*']); // allow connect to out webservice only sites from the same domain
   //io.set('origins', 'localhost:*'); //io.set is deprecated
   //io.set('logger', log); //io.set is deprecated
 
@@ -48,30 +48,46 @@ module.exports = function(server) {
     // else just call next
 
     async.waterfall([
-        function(callback) {
-          handshake.cookies = cookie.parse(handshake.headers.cookie || '');
-          var sidCookie = handshake.cookies[config.get('session:key')];
-          var sid = connect.utils.parseSignedCookie(sidCookie, config.get('session:secret')); //connect.utils.parseSignedCookie - take out express signature from cookie
-          loadSession(sid, callback);
-        },
-        function(session, callback) {
-          if(!session) {
-            callback(new HttpError(401, 'No session'));
-          }
+      function(callback) {
+        handshake.cookies = cookie.parse(handshake.headers.cookie || '');
+        //console.log('handshake.cookies', handshake.cookies);
 
-          handshake.session = session;
-          loadUser(session, callback);
-        },
+        var sidCookie = handshake.cookies[config.get('session:key')];
+        //console.log('sidCookie', sidCookie);
+        var sid = cookieParser.signedCookie(sidCookie, config.get('session:secret')); // - take out express signature from cookie
+        // console.log('sid', sid);
+
+        loadSession(sid, callback);
+      },
+      function(session, callback) {
+      // console.log('session', session);
+        if(!session) {
+          callback(new HttpError(401, 'No session'));
+        }
+
+        handshake.session = session;
+        loadUser(session, callback);
+      },
       function(user, callback) {
-
+        // console.log('user', user);
+        if(!user) {
+          callback(new HttpError(403, 'Anonymous session may not be connect!'));
+        }
+        handshake.user = user;
+        callback(null);
       }
       ],
-      callback
+      function(err) {
+        if(!err) {
+          return next(null, true);
+        }
+        if(err instanceof HttpError) {
+          return next(null, false);
+        }
+        next(err);
+      }
     );
-
-
-
-    next();
+    next(handshake); //pass changed handshake forward
   });
 
 
@@ -87,11 +103,24 @@ module.exports = function(server) {
     //WS(S) (после этого открываеться WS соединение)
     //WSKEY
     //sid(cookie) для передачи socket IO на сервер берется из объекта socket.handshake (тут на сервере socket я назвал client)
-    console.log(client.handshake);
+    // console.log('client.handshake', client.handshake);
+    var handshake = client.request;
+    // console.log('handshake', handshake.user);
+    var username = handshake.user.username;
+
+    client.broadcast.emit('join', username);
 
     client.on('message', function(text, cb){
-      client.broadcast.emit('message', text); // broadcast send message to all connections except this one who emit it
-      cb('123'); // call callback from client side
+      client.broadcast.emit('message', username, text); // broadcast send message to all connections except this one who emit it
+      cb && cb(); // call callback from client side
     });
+
+    client.on('disconnect', function() {
+      console.log('disconnect');
+      client.broadcast.emit('leave', username);
+    });
+
   });
+
+  return io;
 };

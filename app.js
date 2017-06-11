@@ -46,7 +46,7 @@ app.use(bodyParser.json()); // bodyParser разбирает тело запро
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser()); // cookieParser разбирает куки из req.headers и делает req.cookies
 
-var sessionStore = require('lib/sessionStore');
+var sessionStore = require('libs/sessionStore');
 // в начале куки s%3A -- говорит о том что кука подписанна (имеет secret)
 // в консоли document.cookie -- выдасть пустую строку так как у нас в cookie.httpOnly = true
 
@@ -126,4 +126,4 @@ app.use(function(err, req, res, next) {
 module.exports = app;
 
 // test change
-//TODO: lesson 13 , 12:00
+//TODO: lesson 13 , 13:48
