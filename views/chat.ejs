@@ -46,6 +46,12 @@
       form.off('submit', function(e) { sendMessage(e) }); // off sending message functionality
       input.prop('disabled', true);
       setTimeout(reconnect, 500);
+    })
+    .on('logout', function() {
+      location.href = '/';
+    })
+    .on('error', function() {
+      reconnect();
     });
 
   function printMessage(text) {
@@ -73,7 +79,8 @@
     server.once('error', function() {
       setTimeout(reconnect, 500);
     });
-    server.socket.connect();
+    console.log('server', server);
+    server.connect();
   }
 
 </script>

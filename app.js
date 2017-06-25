@@ -31,7 +31,9 @@ server.listen(config.get('port'), function(){
 // server.on('listening', onListening);
 
 /*-------------------------------------------------WS-----------------------------------------------------------------*/
-require('./socket')(server);
+var io = require('./socket')(server);
+// var ioEmitter = require('socket.io-emitter')({ host: '192.168.1.103', port: 3000 });
+app.set('io', io); // made variable global in the level of our application
 /*-------------------------------------------------WS-end-------------------------------------------------------------*/
 
 app.engine('ejs', require('ejs-locals')); //layout partial block -- файлы с расширением ejs обрабатывать при помощи ejs-locals
@@ -125,5 +127,4 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-// test change
-//TODO: lesson 13 , 13:48
+//TODO: finished lesson 13 (all node js chat screencast)

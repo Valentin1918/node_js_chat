@@ -10,12 +10,16 @@ var User = require('models/user').User;
 // on client side: localStorage.debug = '*'; in browser console
 
 function loadSession(sid, callback) {
+  console.log('run loadSession');
   //sessionStore callback is not quite async-style!
   sessionStore.load(sid, function(err, session) {
+    console.log('inside');
     if(arguments.length === 0) {
+      console.log('callback was run 1');
       //no arguments -> no session
       return callback(null, null);
     } else {
+      console.log('callback was run 2', callback);
       return callback(null, session);
     }
   });
@@ -35,8 +39,9 @@ function loadUser(session, callback) {
 
 module.exports = function(server) {
   var io = require('socket.io')(server); //plugged in a library for ws socket.io
+  var eventEmitter = require('./../eventEmitter');
 
-  io.origins(['192.168.1.104:*']); // allow connect to out webservice only sites from the same domain
+  io.origins(['192.168.1.103:*']); // allow connect to out webservice only sites from the same domain
   //io.set('origins', 'localhost:*'); //io.set is deprecated
   //io.set('logger', log); //io.set is deprecated
 
@@ -90,6 +95,38 @@ module.exports = function(server) {
     next(handshake); //pass changed handshake forward
   });
 
+
+  eventEmitter.on('session:reload', function(sid){
+    // find socket with client.handshake.session.id == sid
+    // reload session
+    // var clients = io.sockets.clients(); // get all socket clients (all available sockets) --> deprecated
+    var clients = io.sockets.sockets;
+    var clientsKeys = Object.keys(clients); //(all available sockets keys)
+    console.log('clientsKeys', clientsKeys);
+    clientsKeys.forEach(function(clientKey) {
+      var client = clients[clientKey];
+      var handshakeCookies = cookie.parse(client.handshake.headers.cookie || '');
+      var handshakeCookiesSid = cookieParser.signedCookie(handshakeCookies.sid, config.get('session:secret')); // - take out express signature from cookie
+
+      if(handshakeCookiesSid !== sid) { return }
+
+      loadSession(sid, function(err, session) {
+        if(err) {
+          client.emit('error', 'server error');
+          client.disconnect();
+          return;
+        }
+        if(!session) {
+          client.emit('logout');
+          client.disconnect();
+          return;
+        }
+        client.handshake.session = session;
+      })
+
+    })
+
+  });
 
   io.on('connection', function(client){ //client --> объект связанный с клиентом -- отдаем и получаем сообщения клиенту
     //HTTP(S)
