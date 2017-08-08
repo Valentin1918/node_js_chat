@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./app.js"
+    "start": "env NODE_PATH=. NODE_ENV=development node ./app.js",
+    "super-start": "env NODE_PATH=. NODE_ENV=development supervisor -i node_modules ./app.js"
   },
   "dependencies": {
     "async": "^2.1.5",
