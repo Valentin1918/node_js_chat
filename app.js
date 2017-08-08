@@ -127,4 +127,4 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-//TODO: finished lesson 13 (all node js chat screencast)
+//TODO: finished lesson supervisor № 1
