@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "env NODE_PATH=. NODE_ENV=development node ./app.js",
-    "super-start": "env NODE_PATH=. NODE_ENV=development supervisor -i node_modules ./app.js",
-    "debug": "node debug ./app.js"
+    "super-start": "env NODE_PATH=. NODE_ENV=development supervisor -i node_modules ./testServer.js",
+    "debug": "node inspect ./testServer.js"
   },
   "dependencies": {
     "async": "^2.1.5",
